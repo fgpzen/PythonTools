@@ -50,9 +50,20 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller pillow
     
+    - name: Create spec file
+      run: |
+        echo 'import sys' > ImageProcessor.spec
+        echo 'from PyInstaller.building.api import PYZ, EXE, COLLECT' >> ImageProcessor.spec
+        echo 'from PyInstaller.building.build_main import Analysis' >> ImageProcessor.spec
+        echo 'block_cipher = None' >> ImageProcessor.spec
+        echo 'a = Analysis(["filepath2json.py"], pathex=[], binaries=[], datas=[], hiddenimports=[], hookspath=[], hooksconfig={}, runtime_hooks=[], excludes=[], win_no_prefer_redirects=False, win_private_assemblies=False, cipher=block_cipher, noarchive=False)' >> ImageProcessor.spec
+        echo 'pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)' >> ImageProcessor.spec
+        echo 'exe = EXE(pyz, a.scripts, a.binaries, a.zipfiles, a.datas, [], name="ImageProcessor", debug=False, bootloader_ignore_signals=False, strip=False, upx=True, upx_exclude=[], runtime_tmpdir=None, console=False, disable_windowed_traceback=False, argv_emulation=True, target_arch=None, codesign_identity=None, entitlements_file=None)' >> ImageProcessor.spec
+        echo 'app = COLLECT(exe, a.binaries, a.zipfiles, a.datas, strip=False, upx=True, upx_exclude=[], name="ImageProcessor")' >> ImageProcessor.spec
+    
     - name: Build MacOS app
       run: |
-        pyinstaller --onefile --windowed --name "ImageProcessor" filepath2json.py
+        pyinstaller ImageProcessor.spec
     
     - name: Upload MacOS artifact
       uses: actions/upload-artifact@v4
