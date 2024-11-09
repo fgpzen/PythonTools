@@ -1,0 +1,91 @@
+name: Build Applications
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller pillow windnd
+    
+    - name: Build Windows exe
+      run: |
+        pyinstaller --onefile --windowed --name "ImageProcessor" filepath2json.py
+    
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: Windows-exe
+        path: dist/ImageProcessor.exe
+
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller pillow
+    
+    - name: Build MacOS app
+      run: |
+        pyinstaller --onefile --windowed --name "ImageProcessor" filepath2json.py
+    
+    - name: Upload MacOS artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: MacOS-app
+        path: dist/ImageProcessor.app
+
+  create-release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: Windows-exe
+        path: windows
+        
+    - uses: actions/download-artifact@v2
+      with:
+        name: MacOS-app
+        path: macos
+    
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
+        draft: false
+        prerelease: false
+        files: |
+          windows/ImageProcessor.exe
+          macos/ImageProcessor.app/**/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
