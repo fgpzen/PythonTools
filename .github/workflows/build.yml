@@ -5,17 +5,17 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build-windows:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
     
@@ -29,7 +29,7 @@ jobs:
         pyinstaller --onefile --windowed --name "ImageProcessor" filepath2json.py
     
     - name: Upload Windows artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Windows-exe
         path: dist/ImageProcessor.exe
@@ -38,10 +38,10 @@ jobs:
     runs-on: macos-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
     
@@ -55,7 +55,7 @@ jobs:
         pyinstaller --onefile --windowed --name "ImageProcessor" filepath2json.py
     
     - name: Upload MacOS artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: MacOS-app
         path: dist/ImageProcessor.app
@@ -66,12 +66,12 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
       with:
         name: Windows-exe
         path: windows
         
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
       with:
         name: MacOS-app
         path: macos
