@@ -52,10 +52,24 @@ jobs:
     
     - name: Create default icon
       run: |
-        # 创建一个空的 icns 文件
+        # 创建一个简单的 PNG 图标
+        python -c "
+        from PIL import Image, ImageDraw
+        img = Image.new('RGB', (512, 512), color='white')
+        draw = ImageDraw.Draw(img)
+        draw.rectangle([50, 50, 462, 462], fill='blue')
+        img.save('icon.png')
+        "
+        
+        # 创建不同尺寸的图标
         mkdir icon.iconset
-        sips -s format png /System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/GenericApplicationIcon.icns --out icon.iconset/icon_512x512.png
-        iconutil -c icns icon.iconset -o icon.icns
+        for size in 16 32 64 128 256 512; do
+          sips -z $size $size icon.png --out icon.iconset/icon_${size}x${size}.png
+          sips -z $((size*2)) $((size*2)) icon.png --out icon.iconset/icon_${size}x${size}@2x.png
+        done
+        
+        # 生成 icns 文件
+        iconutil -c icns icon.iconset
     
     - name: Create Info.plist
       run: |
