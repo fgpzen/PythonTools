@@ -52,12 +52,43 @@ jobs:
     
     - name: Build MacOS app
       run: |
-        pyinstaller --onefile --windowed --name "ImageProcessor" --target-arch universal2 filepath2json.py
+        # 移除 --target-arch universal2 选项
+        pyinstaller --onefile --windowed --name "ImageProcessor" filepath2json.py
+        
+        # 创建基本的 Info.plist
+        echo '<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleDisplayName</key>
+            <string>ImageProcessor</string>
+            <key>CFBundleExecutable</key>
+            <string>ImageProcessor</string>
+            <key>CFBundleIconFile</key>
+            <string>icon.icns</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.example.imageprocessor</string>
+            <key>CFBundleInfoDictionaryVersion</key>
+            <string>6.0</string>
+            <key>CFBundleName</key>
+            <string>ImageProcessor</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0.0</string>
+            <key>LSMinimumSystemVersion</key>
+            <string>10.13.0</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+        </dict>
+        </plist>' > dist/Info.plist
     
     - name: Create app bundle
       run: |
         mkdir -p dist/ImageProcessor.app/Contents/MacOS
+        mkdir -p dist/ImageProcessor.app/Contents/Resources
         mv dist/ImageProcessor dist/ImageProcessor.app/Contents/MacOS/
+        mv dist/Info.plist dist/ImageProcessor.app/Contents/
         chmod +x dist/ImageProcessor.app/Contents/MacOS/ImageProcessor
     
     - name: Upload MacOS artifact
