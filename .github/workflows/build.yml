@@ -121,21 +121,28 @@ jobs:
   create-release:
     needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
     - uses: actions/download-artifact@v4
       with:
         name: Windows-exe
-        path: windows
+        path: release-files/windows
         
     - uses: actions/download-artifact@v4
       with:
         name: MacOS-app
-        path: macos
+        path: release-files/macos
+    
+    - name: Zip MacOS app
+      run: |
+        cd release-files/macos
+        zip -r ../ImageProcessor-mac.zip ImageProcessor.app
+        cd ../..
     
     - name: Create Release
-      id: create_release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{ github.run_number }}
@@ -143,7 +150,7 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          windows/ImageProcessor.exe
-          macos/ImageProcessor.app/**/*
+          release-files/windows/ImageProcessor.exe
+          release-files/ImageProcessor-mac.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
