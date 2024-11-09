@@ -131,17 +131,22 @@ jobs:
         name: Windows-exe
         path: release-files/windows
         
-    - uses: actions/download-artifact@v4
+    - name: Download MacOS artifact
+      uses: actions/download-artifact@v4
       with:
         name: MacOS-app
         path: release-files/macos
     
+    - name: List files
+      run: |
+        ls -la release-files/macos
+        
     - name: Zip MacOS app
       run: |
         cd release-files/macos
-        zip -r ../ImageProcessor-mac.zip ImageProcessor.app
+        zip -r ../ImageProcessor-mac.zip ./*
         cd ../..
-    
+        
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
