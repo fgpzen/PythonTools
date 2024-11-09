@@ -50,12 +50,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller pillow
     
-    - name: Build MacOS app
+    - name: Create default icon
       run: |
-        # 移除 --target-arch universal2 选项
-        pyinstaller --onefile --windowed --name "ImageProcessor" filepath2json.py
-        
-        # 创建基本的 Info.plist
+        # 创建一个空的 icns 文件
+        mkdir icon.iconset
+        sips -s format png /System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/GenericApplicationIcon.icns --out icon.iconset/icon_512x512.png
+        iconutil -c icns icon.iconset -o icon.icns
+    
+    - name: Create Info.plist
+      run: |
         echo '<?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
@@ -81,14 +84,18 @@ jobs:
             <key>NSHighResolutionCapable</key>
             <true/>
         </dict>
-        </plist>' > dist/Info.plist
+        </plist>' > Info.plist
+    
+    - name: Build MacOS app
+      run: |
+        pyinstaller --onefile --windowed --name "ImageProcessor" --icon icon.icns filepath2json.py
     
     - name: Create app bundle
       run: |
-        mkdir -p dist/ImageProcessor.app/Contents/MacOS
-        mkdir -p dist/ImageProcessor.app/Contents/Resources
+        mkdir -p dist/ImageProcessor.app/Contents/{MacOS,Resources}
         mv dist/ImageProcessor dist/ImageProcessor.app/Contents/MacOS/
-        mv dist/Info.plist dist/ImageProcessor.app/Contents/
+        mv Info.plist dist/ImageProcessor.app/Contents/
+        mv icon.icns dist/ImageProcessor.app/Contents/Resources/
         chmod +x dist/ImageProcessor.app/Contents/MacOS/ImageProcessor
     
     - name: Upload MacOS artifact
